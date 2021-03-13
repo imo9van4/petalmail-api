@@ -217,27 +217,51 @@ app.get('/emails', async function(req, res) {
   }
 });
 
-app.put('/email', async function(req, res) {
+app.get('/view/emails:id', async function(req, res) {
+  try {
+    console.log('/view/emails success!', req.user);
+    const [emails] = await req.db.query(
+      `SELECT * FROM emails WHERE id = :userId`,
+      {
+        userId: req.params.id
+      }
+    );
+
+    res.json({
+      data: emails,
+      error: false,
+      msg: ''
+    });
+  } catch (err) {
+    console.log('Error in /view/emails', err);
+    res.json({
+      data: null,
+      error: true,
+      msg: 'Error fetching emails'
+    });
+  }
+});
+
+app.put('/write/emails', async function(req, res) {
+  console.log(req.user);
   try {
     await req.db.query(
       `INSERT INTO emails (
-        id,
         sender,
         recipient,
         subject,
         body,
         time_stamp
       ) VALUES (
-        :id,
-        :from,
+        :sender,
         :recipient,
         :subject,
         :body,
         NOW()
       )`,
       {
-        id: req.body.id,
-        from: req.body.from,
+        
+        sender: req.user.email,
         recipient: req.body.recipient,
         subject: req.body.subject,
         body: req.body.body
@@ -251,7 +275,7 @@ app.put('/email', async function(req, res) {
   }
 });
 
-app.post('/email', async function(req, res) {
+/*app.post('/email', async function(req, res) {
   try {
     console.log('/emails success!');
 
@@ -259,17 +283,42 @@ app.post('/email', async function(req, res) {
   } catch (err) {
     
   }
-});
-/*
-app.delete('/deleteEmails/:id', async function(req, res) {
+});*/
+
+
+app.delete('/delete/emails/:id', async function(req, res) {
   try {
-    await req.db.query(
-    DELETE FROM emails WHERE body = :id`,
-    {
-      id: req.params.id
-    }
+    console.log('/delete/emails success!', req.user);
+    const [emails] = await req.db.query(
+      `DELETE FROM emails WHERE id = :userId`,
+      {
+        userId: req.params.id
+      }
     );
-  
+ 
+    res.json({
+      data: emails,
+      error: false,
+      msg: ''
+    });
+  } catch (err) {
+    console.log('Error in /delete/emails', err);
+    res.json({
+      data: null,
+      error: true,
+      msg: 'Error deleting emails'
+    });
+  }
+});
+ 
+ 
+ /* try {
+    await req.db.query(
+      DELETE FROM emails WHERE id = userId`,
+      {
+        id: req.params.id
+      }
+    );
     res.json('/delete success!')
   } catch (err) {
     console.log("Error in /delete", err);
